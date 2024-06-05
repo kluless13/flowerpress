@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSession, getSession } from 'next-auth/react';
 import { GetServerSideProps } from 'next';
-import Scrapbook from '/Users/angad/flowerpress/pages/components/Scrapbook';
+import Scrapbook from '../../pages/components/Scrapbook';
 
 const ScrapbookPage: React.FC = () => {
   const { data: session } = useSession();
