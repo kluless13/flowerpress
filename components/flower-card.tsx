@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { MessageSquare, Calendar } from "lucide-react"
+import { MessageSquare, Calendar, Trash2 } from "lucide-react"
 import { PressedFlowerAnimation } from "@/components/animations"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -18,6 +18,7 @@ const getPresetImagePath = (value: string): string => {
 }
 
 interface FlowerCardProps {
+  id?: string
   imageUrl: string
   note: string
   dateTaken: Date
@@ -28,9 +29,11 @@ interface FlowerCardProps {
     type: 'none' | 'preset' | 'custom'
     value?: string
   }
+  onDelete?: (id: string) => void
 }
 
 export default function FlowerCard({
+  id,
   imageUrl,
   note,
   dateTaken,
@@ -38,6 +41,7 @@ export default function FlowerCard({
   category,
   aspectRatio = 1.33,
   background,
+  onDelete,
 }: FlowerCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -96,7 +100,10 @@ export default function FlowerCard({
         className="relative cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          setIsExpanded(!isExpanded)
+          setIsHovered(false) // Clear hover state when clicking
+        }}
       >
         <div 
           className="transition-all duration-700 ease-in-out"
@@ -126,7 +133,7 @@ export default function FlowerCard({
                 src={imageUrl || "/placeholder.svg"}
                 alt="Pressed flower"
                 fill
-                className="object-cover transition-transform duration-300 hover:scale-105 rounded-2xl"
+                className="object-contain transition-transform duration-300 hover:scale-105 rounded-2xl"
               />
             </div>
 
@@ -146,15 +153,20 @@ export default function FlowerCard({
               ></div>
             </div>
 
-            {/* Quick preview on hover (mobile: on tap) */}
+            {/* Quick preview on hover (desktop only) */}
             <div
-              className={`absolute bottom-0 left-0 right-0 p-3 text-white transition-opacity duration-300 ${
-                isHovered && !isExpanded ? "opacity-100" : "opacity-0"
+              className={`absolute bottom-0 left-0 right-0 z-10 transition-all duration-300 ease-in-out pointer-events-none hidden md:block ${
+                isHovered && !isExpanded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
               }`}
+              style={{ zIndex: 10 }}
             >
-              <p className="text-sm font-medium line-clamp-2 drop-shadow-lg">
-                {note.length > 60 ? `${note.substring(0, 60)}...` : note}
-              </p>
+              <div className="p-3">
+                <div className="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <p className="text-white text-sm font-medium leading-relaxed">
+                    {note && note.trim() ? (note.length > 80 ? `${note.substring(0, 80)}...` : note) : "No notes available"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -170,7 +182,7 @@ export default function FlowerCard({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="p-4 space-y-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+            <div className="p-4 space-y-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-t-2xl">
               {/* Detailed date info */}
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <Calendar className="w-4 h-4" />
@@ -225,6 +237,24 @@ export default function FlowerCard({
                   />
                 </div>
               </div>
+
+              {/* Delete button */}
+              {id && onDelete && (
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (confirm('Are you sure you want to delete this flower? This action cannot be undone.')) {
+                        onDelete(id)
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Flower
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

@@ -22,9 +22,16 @@ import { Label } from "@/components/ui/label"
 interface DashboardHeaderProps {
   username?: string
   onSearchChange?: (query: string) => void
+  onFilterChange?: (filters: { category?: string | null; stage?: string | null }) => void
+  currentFilters?: { category?: string | null; stage?: string | null }
 }
 
-export default function DashboardHeader({ username = "User", onSearchChange }: DashboardHeaderProps) {
+export default function DashboardHeader({ 
+  username = "User", 
+  onSearchChange, 
+  onFilterChange,
+  currentFilters = {}
+}: DashboardHeaderProps) {
   const { logout } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showStagesInfo, setShowStagesInfo] = useState(false)
@@ -58,9 +65,16 @@ export default function DashboardHeader({ username = "User", onSearchChange }: D
     }
   }
 
+  const handleFilterSelect = (type: 'category' | 'stage', value: string | null) => {
+    onFilterChange?.({
+      ...currentFilters,
+      [type]: value
+    })
+  }
+
   return (
     <>
-      <header className="sticky top-0 z-30 bg-gradient-to-br from-[#F5E6E8] via-[#E8F5E6] to-[#F0F8F0] dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-xl border-0">
+      <header className="sticky top-0 z-30 bg-gradient-to-br from-[#F5E6E8] via-[#E8F5E6] to-[#F0F8F0] dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-xl border-0 hidden md:block">
         <div className="container max-w-6xl mx-auto px-4 py-3">
           {/* Main header row */}
           <div className="flex items-center justify-between mb-3">
@@ -145,44 +159,89 @@ export default function DashboardHeader({ username = "User", onSearchChange }: D
                 >
                   <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
                   <DropdownMenuGroup>
-                    <DropdownMenuItem className="hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('category', null)}
+                      className={`hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                        !currentFilters.category ? 'bg-green-50 dark:bg-green-900/20' : ''
+                      }`}
+                    >
                       All Flowers
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('category', 'garden')}
+                      className={`hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                        currentFilters.category === 'garden' ? 'bg-green-50 dark:bg-green-900/20' : ''
+                      }`}
+                    >
                       Garden Flowers
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('category', 'wild')}
+                      className={`hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                        currentFilters.category === 'wild' ? 'bg-green-50 dark:bg-green-900/20' : ''
+                      }`}
+                    >
                       Wildflowers
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('category', 'herbs')}
+                      className={`hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                        currentFilters.category === 'herbs' ? 'bg-green-50 dark:bg-green-900/20' : ''
+                      }`}
+                    >
                       Herbs & Botanicals
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
                   <DropdownMenuLabel>Filter by Stage</DropdownMenuLabel>
                   <DropdownMenuGroup>
-                    <DropdownMenuItem className="hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('stage', null)}
+                      className={`hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                        !currentFilters.stage ? 'bg-green-50 dark:bg-green-900/20' : ''
+                      }`}
+                    >
                       All Stages
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('stage', 'fresh')}
+                      className={`hover:bg-emerald-50 dark:hover:bg-emerald-900/20 ${
+                        currentFilters.stage === 'fresh' ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm"></div>
                         <span>Fresh (0-7 days)</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('stage', 'pressing')}
+                      className={`hover:bg-amber-50 dark:hover:bg-amber-900/20 ${
+                        currentFilters.stage === 'pressing' ? 'bg-amber-50 dark:bg-amber-900/20' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"></div>
                         <span>Pressing (7-30 days)</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-orange-50 dark:hover:bg-orange-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('stage', 'pressed')}
+                      className={`hover:bg-orange-50 dark:hover:bg-orange-900/20 ${
+                        currentFilters.stage === 'pressed' ? 'bg-orange-50 dark:bg-orange-900/20' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 shadow-sm"></div>
                         <span>Pressed (30-90 days)</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                    <DropdownMenuItem 
+                      onClick={() => handleFilterSelect('stage', 'preserved')}
+                      className={`hover:bg-rose-50 dark:hover:bg-rose-900/20 ${
+                        currentFilters.stage === 'preserved' ? 'bg-rose-50 dark:bg-rose-900/20' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 shadow-sm"></div>
                         <span>Preserved (90+ days)</span>

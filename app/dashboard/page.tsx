@@ -8,9 +8,18 @@ import FlowerList from "@/components/flower-list"
 import { FlowerListSkeleton } from "@/components/loading-skeletons"
 import BackToTopButton from "@/components/back-to-top-button"
 import DateNavigation from "@/components/date-navigation"
+import MobileBottomNav from "@/components/mobile-bottom-nav"
+import { Input } from "@/components/ui/input"
+import { Search, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [showSearch, setShowSearch] = useState(false)
+  const [filters, setFilters] = useState<{
+    category?: 'garden' | 'wild' | 'herbs' | null;
+    stage?: 'fresh' | 'pressing' | 'pressed' | 'preserved' | null;
+  }>({})
   const { user, isAuthenticated, loading } = useAuth()
   const router = useRouter()
 
@@ -32,6 +41,25 @@ export default function DashboardPage() {
     return null
   }
 
+  const handleSearchToggle = () => {
+    setShowSearch(!showSearch)
+    if (showSearch) {
+      setSearchQuery("")
+    }
+  }
+
+  const handleFilterChange = (newFilters: { category?: string | null; stage?: string | null }) => {
+    setFilters({
+      category: newFilters.category as 'garden' | 'wild' | 'herbs' | null,
+      stage: newFilters.stage as 'fresh' | 'pressing' | 'pressed' | 'preserved' | null
+    })
+  }
+
+  const clearSearch = () => {
+    setSearchQuery("")
+    setShowSearch(false)
+  }
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       {/* Animated lava lamp background */}
@@ -49,18 +77,59 @@ export default function DashboardPage() {
       <div className="relative z-10">
         <DashboardHeader 
           username={user.displayName || user.email || "User"} 
-          onSearchChange={setSearchQuery} 
+          onSearchChange={setSearchQuery}
+          onFilterChange={handleFilterChange}
+          currentFilters={filters}
         />
 
-        <div className="container max-w-6xl mx-auto px-4 pb-20 relative">
+        {/* Mobile Search Bar */}
+        {showSearch && (
+          <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 p-4">
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search flowers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10 bg-white/70 dark:bg-gray-700/70 border-0 focus:bg-white dark:focus:bg-gray-700"
+                autoFocus
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-gray-600"
+                  onClick={clearSearch}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="container max-w-6xl mx-auto px-4 pb-20 md:pb-8 relative" style={{ paddingTop: showSearch ? '80px' : '0' }}>
           <DateNavigation />
 
           <Suspense fallback={<FlowerListSkeleton />}>
-            <FlowerList searchQuery={searchQuery} userId={user.uid} />
+            <FlowerList 
+              searchQuery={searchQuery} 
+              userId={user.uid} 
+              filters={filters}
+            />
           </Suspense>
 
           <BackToTopButton />
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          onSearchToggle={handleSearchToggle}
+          onFilterChange={handleFilterChange}
+          currentFilters={filters}
+          username={user.displayName || user.email || "User"}
+        />
       </div>
     </main>
   )

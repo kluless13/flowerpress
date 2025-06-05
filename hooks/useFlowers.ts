@@ -11,7 +11,14 @@ interface UseFlowersState {
   lastVisible: DocumentSnapshot | null;
 }
 
-export const useFlowers = (userId: string | null, searchQuery?: string) => {
+export const useFlowers = (
+  userId: string | null, 
+  searchQuery?: string,
+  filters?: {
+    category?: 'garden' | 'wild' | 'herbs' | null;
+    stage?: 'fresh' | 'pressing' | 'pressed' | 'preserved' | null;
+  }
+) => {
   const [state, setState] = useState<UseFlowersState>({
     flowers: [],
     loading: false,
@@ -42,6 +49,16 @@ export const useFlowers = (userId: string | null, searchQuery?: string) => {
           hasMore: false, // Search doesn't support pagination yet
           lastVisible: null,
         }));
+      } else if (filters && (filters.category || filters.stage)) {
+        // Filter mode
+        const filterResults = await FlowerService.filterFlowers(userId, filters);
+        setState(prev => ({
+          ...prev,
+          flowers: reset ? filterResults : filterResults, // Always replace in filter
+          loading: false,
+          hasMore: false, // Filter doesn't support pagination yet
+          lastVisible: null,
+        }));
       } else {
         // Normal pagination mode
         const { flowers: newFlowers, lastVisible } = await FlowerService.getFlowers(
@@ -65,7 +82,7 @@ export const useFlowers = (userId: string | null, searchQuery?: string) => {
         error: error.message || 'Failed to load flowers',
       }));
     }
-  }, [userId, searchQuery, state.lastVisible]);
+  }, [userId, searchQuery, state.lastVisible, filters]);
 
   // Load more flowers (pagination)
   const loadMore = useCallback(async () => {
@@ -111,6 +128,9 @@ export const useFlowers = (userId: string | null, searchQuery?: string) => {
         userId,
       });
 
+      // Add a small delay to ensure database operation completes
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Refresh the list to include the new flower
       await refresh();
 
@@ -197,7 +217,7 @@ export const useFlowers = (userId: string | null, searchQuery?: string) => {
         lastVisible: null,
       });
     }
-  }, [userId, searchQuery]);
+  }, [userId, searchQuery, filters]);
 
   return {
     flowers: state.flowers,

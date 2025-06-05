@@ -6,6 +6,7 @@ import FlowerCard from "@/components/flower-card"
 import { FlowerCardSkeleton } from "@/components/loading-skeletons"
 import { useFlowers } from "@/hooks/useFlowers"
 import { Flower } from "@/lib/types"
+import { FlowerService, ImageService } from "@/lib/firebase-services"
 
 // Expanded mock data with different aspect ratios for asymmetrical cards
 const mockFlowers = [
@@ -167,10 +168,42 @@ const mockFlowers = [
 interface FlowerListProps {
   searchQuery?: string
   userId?: string
+  filters?: {
+    category?: 'garden' | 'wild' | 'herbs' | null;
+    stage?: 'fresh' | 'pressing' | 'pressed' | 'preserved' | null;
+  }
 }
 
-export default function FlowerList({ searchQuery = "", userId }: FlowerListProps) {
-  const { flowers, loading, error, hasMore, loadMore } = useFlowers(userId || null, searchQuery)
+export default function FlowerList({ searchQuery = "", userId, filters }: FlowerListProps) {
+  const { flowers, loading, error, hasMore, loadMore, refresh } = useFlowers(userId || null, searchQuery, filters)
+
+  const handleDeleteFlower = async (flowerId: string) => {
+    if (!userId) return
+    
+    try {
+      // Find the flower to get the image URL for deletion
+      const flower = flowers.find(f => f.id === flowerId)
+      
+      // Delete the flower from Firestore
+      await FlowerService.deleteFlower(flowerId)
+      
+      // Delete the associated image from storage if it exists
+      if (flower?.imageUrl) {
+        try {
+          await ImageService.deleteImage(flower.imageUrl)
+        } catch (imageError) {
+          console.warn("Could not delete image:", imageError)
+          // Continue even if image deletion fails
+        }
+      }
+      
+      // Refresh the flowers list
+      refresh()
+    } catch (error) {
+      console.error("Error deleting flower:", error)
+      alert("Failed to delete flower. Please try again.")
+    }
+  }
 
   // Handle scroll to implement infinite scrolling
   useEffect(() => {
@@ -285,6 +318,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                 return (
                   <FlowerCard
                     key={flower.id}
+                    id={flower.id}
                     imageUrl={flower.imageUrl}
                     note={flower.note}
                     dateTaken={flowerDate}
@@ -292,6 +326,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                     category={flower.category}
                     aspectRatio={flower.aspectRatio}
                     background={flower.background}
+                    onDelete={handleDeleteFlower}
                   />
                 )
               })}
@@ -311,6 +346,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                 return (
                   <FlowerCard
                     key={flower.id}
+                    id={flower.id}
                     imageUrl={flower.imageUrl}
                     note={flower.note}
                     dateTaken={flowerDate}
@@ -318,6 +354,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                     category={flower.category}
                     aspectRatio={flower.aspectRatio}
                     background={flower.background}
+                    onDelete={handleDeleteFlower}
                   />
                 )
               })}
@@ -337,6 +374,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                 return (
                   <FlowerCard
                     key={flower.id}
+                    id={flower.id}
                     imageUrl={flower.imageUrl}
                     note={flower.note}
                     dateTaken={flowerDate}
@@ -344,6 +382,7 @@ export default function FlowerList({ searchQuery = "", userId }: FlowerListProps
                     category={flower.category}
                     aspectRatio={flower.aspectRatio}
                     background={flower.background}
+                    onDelete={handleDeleteFlower}
                   />
                 )
               })}

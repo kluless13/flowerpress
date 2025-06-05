@@ -91,6 +91,19 @@ export default function AddFlowerModal({ isOpen, onClose }: AddFlowerModalProps)
   const [selectedBackground, setSelectedBackground] = useState<{ type: 'none' | 'preset' | 'custom'; value?: string }>({ type: 'none' })
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null)
 
+  // Helper function to calculate image aspect ratio
+  const calculateAspectRatio = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        const ratio = img.width / img.height
+        resolve(ratio)
+        URL.revokeObjectURL(img.src)
+      }
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -186,8 +199,6 @@ export default function AddFlowerModal({ isOpen, onClose }: AddFlowerModalProps)
     }
   }
 
-
-
   const handleSave = async () => {
     if (!user) {
       setError("You must be signed in to add flowers")
@@ -203,9 +214,9 @@ export default function AddFlowerModal({ isOpen, onClose }: AddFlowerModalProps)
     setError("")
 
     try {
-      // Generate random aspect ratio for the flower
-      const aspectRatios = [0.7, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.15, 1.2, 1.25, 1.3, 1.4, 1.5]
-      const aspectRatio = aspectRatios[Math.floor(Math.random() * aspectRatios.length)]
+      // Use processed file if available, otherwise use original
+      const fileToUpload = processedFile || selectedFile
+      const aspectRatio = await calculateAspectRatio(fileToUpload!)
 
       const flowerData = {
         imageUrl: previewImage, // This will be replaced if we have a real file
@@ -216,8 +227,6 @@ export default function AddFlowerModal({ isOpen, onClose }: AddFlowerModalProps)
         background: selectedBackground.type !== 'none' ? selectedBackground : undefined,
       }
 
-      // Use processed file if available, otherwise use original
-      const fileToUpload = processedFile || selectedFile
       await addFlower(flowerData, fileToUpload || undefined, backgroundFile || undefined)
 
       // Pick a random success message
@@ -340,7 +349,7 @@ export default function AddFlowerModal({ isOpen, onClose }: AddFlowerModalProps)
                 <img
                   src={previewImage || "/placeholder.svg"}
                   alt="Flower preview"
-                  className="relative w-full h-full object-cover"
+                  className="relative w-full h-full object-contain"
                   style={{ zIndex: 2 }}
                 />
                 

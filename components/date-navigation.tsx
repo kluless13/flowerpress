@@ -63,7 +63,7 @@ export default function DateNavigation() {
 
   return (
     <div
-      className={`sticky top-16 z-20 flex justify-center py-2 transition-transform duration-300 ${
+      className={`sticky top-4 z-20 flex justify-center py-2 transition-transform duration-300 ${
         isVisible ? "translate-y-0" : "-translate-y-16"
       }`}
     >

@@ -188,6 +188,78 @@ export class FlowerService {
       throw error;
     }
   }
+
+  // Filter flowers by category and stage
+  static async filterFlowers(
+    userId: string, 
+    filters: {
+      category?: 'garden' | 'wild' | 'herbs' | null;
+      stage?: 'fresh' | 'pressing' | 'pressed' | 'preserved' | null;
+    },
+    limitCount: number = 20
+  ): Promise<Flower[]> {
+    try {
+      let q = query(
+        collection(db, FLOWERS_COLLECTION),
+        where("userId", "==", userId),
+        orderBy("dateTaken", "desc"),
+        limit(limitCount * 2) // Get more to filter client-side for stage
+      );
+
+      // Add category filter if specified
+      if (filters.category) {
+        q = query(q, where("category", "==", filters.category));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const flowers: Flower[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const flower = {
+          id: doc.id,
+          ...data,
+          dateTaken: data.dateTaken instanceof Timestamp ? data.dateTaken.toDate() : data.dateTaken,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
+          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : data.updatedAt,
+        } as Flower;
+
+        // Client-side stage filtering
+        if (filters.stage) {
+          const today = new Date();
+          const flowerDate = flower.dateTaken instanceof Date ? flower.dateTaken : flower.dateTaken.toDate();
+          const daysElapsed = Math.floor((today.getTime() - flowerDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          let matchesStage = false;
+          switch (filters.stage) {
+            case 'fresh':
+              matchesStage = daysElapsed < 7;
+              break;
+            case 'pressing':
+              matchesStage = daysElapsed >= 7 && daysElapsed < 30;
+              break;
+            case 'pressed':
+              matchesStage = daysElapsed >= 30 && daysElapsed < 90;
+              break;
+            case 'preserved':
+              matchesStage = daysElapsed >= 90;
+              break;
+          }
+          
+          if (matchesStage) {
+            flowers.push(flower);
+          }
+        } else {
+          flowers.push(flower);
+        }
+      });
+
+      return flowers.slice(0, limitCount);
+    } catch (error) {
+      console.error("Error filtering flowers:", error);
+      throw error;
+    }
+  }
 }
 
 // Image Services
