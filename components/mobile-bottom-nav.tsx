@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Filter, Search, User, Edit2, Sun, Moon } from "lucide-react"
+import { Plus, Filter, Search, User, Edit2, Sun, Moon, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import AddFlowerModal from "@/components/add-flower-modal"
+import FeedbackModal from "@/components/feedback-modal"
 import ThemeToggle from "@/components/theme-toggle"
 import { useAuth } from "@/hooks/useAuth"
 import {
@@ -32,11 +33,12 @@ export default function MobileBottomNav({
   currentFilters,
   username = "User"
 }: MobileBottomNavProps) {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditingUsername, setIsEditingUsername] = useState(false)
   const [editedUsername, setEditedUsername] = useState(username)
   const [currentUsername, setCurrentUsername] = useState(username)
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
 
   const handleSaveUsername = () => {
     setCurrentUsername(editedUsername)
@@ -229,6 +231,13 @@ export default function MobileBottomNav({
                 <Edit2 className="w-4 h-4 mr-2" />
                 Edit Profile
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setIsFeedbackModalOpen(true)}
+                className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Send Feedback
+              </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
               <DropdownMenuItem 
                 onClick={handleLogout}
@@ -244,6 +253,14 @@ export default function MobileBottomNav({
 
       {/* Add Flower Modal */}
       <AddFlowerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        userEmail={user?.email || undefined}
+        userName={currentUsername}
+      />
 
       {/* Edit Username Dialog */}
       <Dialog open={isEditingUsername} onOpenChange={setIsEditingUsername}>

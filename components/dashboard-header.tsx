@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Filter, Edit2, Search, X, LogOut, User } from "lucide-react"
+import { Plus, Filter, Edit2, Search, X, LogOut, User, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import AddFlowerModal from "@/components/add-flower-modal"
+import FeedbackModal from "@/components/feedback-modal"
 import ThemeToggle from "@/components/theme-toggle"
 import { useAuth } from "@/hooks/useAuth"
 import {
@@ -32,7 +33,7 @@ export default function DashboardHeader({
   onFilterChange,
   currentFilters = {}
 }: DashboardHeaderProps) {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showStagesInfo, setShowStagesInfo] = useState(false)
   const [isEditingUsername, setIsEditingUsername] = useState(false)
@@ -40,6 +41,7 @@ export default function DashboardHeader({
   const [currentUsername, setCurrentUsername] = useState(username)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
 
   const handleSaveUsername = () => {
     setCurrentUsername(editedUsername)
@@ -120,6 +122,13 @@ export default function DashboardHeader({
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
                     Edit Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setIsFeedbackModalOpen(true)}
+                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Send Feedback
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
                   <DropdownMenuItem 
@@ -366,6 +375,13 @@ export default function DashboardHeader({
       </Dialog>
 
       <AddFlowerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        userEmail={user?.email || undefined}
+        userName={currentUsername}
+      />
     </>
   )
 }

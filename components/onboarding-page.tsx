@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FadeIn } from "@/components/animations"
@@ -124,13 +125,18 @@ export default function OnboardingPage() {
       <div className="z-10 w-full max-w-md mx-auto">
         <FadeIn className="text-center mb-8">
           <div className="mb-6">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#2E4D2E] to-[#1D3C1D] dark:from-green-600 dark:to-green-700 rounded-full flex items-center justify-center shadow-xl animate-gentle-pulse">
-              <span className="text-5xl">🌻</span>
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl animate-gentle-pulse overflow-hidden relative">
+              <Image
+                src="/liyatree.png"
+                alt="Liyatree Logo"
+                fill
+                className="object-cover"
+              />
             </div>
             <h1 className="text-2xl md:text-3xl font-serif italic text-[#2E4D2E] dark:text-green-300 mb-2">
-              Welcome to FlowerPress, Liyatree
+              Welcome to FlowerPress, Liyatree!
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Liyatree's digital botanical companion</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Liya's digital botanical space! 🌻</p>
           </div>
         </FadeIn>
 
@@ -140,7 +146,7 @@ export default function OnboardingPage() {
               <div className="text-center space-y-6">
                 <div className="space-y-4">
                   <h2 className="text-xl md:text-2xl font-serif italic text-[#2E4D2E] dark:text-green-300">
-                    {greeting}! Welcome to FlowerPress
+                    {greeting}! Let's press some floras*!
                   </h2>
 
                   <div className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -184,7 +190,10 @@ export default function OnboardingPage() {
 
                 <div className="pt-2">
                   <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    Begin your botanical journey today
+                    Made with ❤️ by kluless. 
+                    <br />
+                    <br />
+                    *floras = flowers (not a typo, I checked!)
                   </p>
                 </div>
               </div>
